@@ -1,0 +1,89 @@
+zabbix_export:
+  version: '6.4'
+  template_groups:
+    - uuid: 7df96b18c230490a9a0a9e2307226338
+      name: Templates
+  templates:
+    - uuid: 8e03ac0053da45f8b02e5082616fd160
+      template: 'Template Nice Windows Updates'
+      name: 'Template Nice Windows Updates'
+      groups:
+        - name: Templates
+      items:
+        - uuid: 96e5d9d81ad649728c676d8ea17b96c4
+          name: 'Windows Update - Installed'
+          key: 'windows.update[installed]'
+          delay: 1h
+          history: 30d
+          trends: '0'
+          value_type: TEXT
+          preprocessing:
+            - type: DISCARD_UNCHANGED
+              parameters:
+                - ''
+          tags:
+            - tag: Application
+              value: System
+            - tag: Application
+              value: Update
+        - uuid: 814e7b88c34740058738f92ef3de94da
+          name: 'Windows Update - Last Search Time'
+          key: 'windows.update[lastSearch]'
+          delay: 1h
+          history: 1d
+          trends: '0'
+          units: unixtime
+          tags:
+            - tag: Application
+              value: System
+            - tag: Application
+              value: Update
+        - uuid: 3d80b74f63454a99a03321595ef60e7c
+          name: 'Windows Update - Last Update Time'
+          key: 'windows.update[last]'
+          delay: 1h
+          history: 1d
+          trends: '0'
+          units: unixtime
+          tags:
+            - tag: Application
+              value: System
+            - tag: Application
+              value: Update
+          triggers:
+            - uuid: 833167166d9d411dbada67aa3aca30a2
+              expression: 'fuzzytime(/Template Nice Windows Updates/windows.update[last],{$WINDOWS_UPDATE_ERR_SEC})=0'
+              name: 'Needs Updates'
+              priority: AVERAGE
+            - uuid: aafc6b4cb0e3455d8029940e12b31e6b
+              expression: 'fuzzytime(/Template Nice Windows Updates/windows.update[last],{$WINDOWS_UPDATE_WARN_SEC})=0'
+              name: 'Needs Updates'
+              priority: WARNING
+              dependencies:
+                - name: 'Needs Updates'
+                  expression: 'fuzzytime(/Template Nice Windows Updates/windows.update[last],{$WINDOWS_UPDATE_ERR_SEC})=0'
+        - uuid: b7156b1a188b410c87b43ca27c09323e
+          name: 'Windows Update - Pending'
+          key: 'windows.update[pending]'
+          delay: 1h
+          history: 1d
+          trends: '0'
+          status: DISABLED
+          value_type: TEXT
+          tags:
+            - tag: Application
+              value: System
+            - tag: Application
+              value: Update
+      tags:
+        - tag: Application
+          value: System
+        - tag: Application
+          value: Update
+      macros:
+        - macro: '{$WINDOWS_UPDATE_ERR_SEC}'
+          value: '4320000'
+          description: '50*24*60*60'
+        - macro: '{$WINDOWS_UPDATE_WARN_SEC}'
+          value: '3024000'
+          description: '35 (days) * 24 (h) * 60 (min) * 60 (sec)'
